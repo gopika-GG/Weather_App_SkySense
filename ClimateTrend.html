@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Climate Trend (Forecast)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+      body {
+      background-image: url('https://picsum.photos/id/1015/1600/900'); /* 🌧️ Kerala monsoon clouds */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .card {
+      background-color: rgba(255,255,255,0.85); /* semi-transparent card */
+      border-radius: 10px;
+    }
+    #trendChart {
+      background-color: rgba(255,255,255,0.7);
+      border-radius: 8px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+   <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index1.html">☀️ SkySense</a>
+
+    <!-- Toggler for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible links -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index1.html">🌤️ Weather</a></li>
+        <li class="nav-item"><a class="nav-link" href="activity.html">🏃 Best Activity Time</a></li>
+        <li class="nav-item"><a class="nav-link" href="conversation.html">🗣️ Conversational Weather</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <div class="card p-4 shadow-lg">
+    <h3 class="text-center text-success">📈 Climate Trend (Forecast)</h3>
+
+    <!-- User input -->
+    <input type="text" id="cityInput" class="form-control mb-3" placeholder="Enter city name (e.g., Thiruvananthapuram)">
+    <button class="btn btn-primary w-100" onclick="getClimateTrend()">Show Climate Trend</button>
+
+    <!-- Chart + Summary -->
+    <canvas id="trendChart" class="mt-4"></canvas>
+    <div id="trendSummary" class="mt-3 text-center text-info"></div>
+  </div>
+</div>
+
+
+<script>
+const apiKey = "41229cf61edd8e1021251c339a96e62c"; // 🔑 Replace with your OpenWeatherMap API key
+
+async function getClimateTrend() {
+  const city = document.getElementById("cityInput").value.trim();
+  if (!city) {
+    document.getElementById("trendSummary").innerText = "⚠️ Please enter a city name.";
+    return;
+  }
+
+  try {
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    let temps = [];
+    let labels = [];
+
+    // Pick one value per day (every 8th entry ~ 24h)
+    data.list.forEach((entry, i) => {
+      if (i % 8 === 0) {
+        temps.push(entry.main.temp);
+        labels.push(new Date(entry.dt * 1000).toLocaleDateString());
+      }
+    });
+
+    showTrendChart(labels, temps);
+    document.getElementById("trendSummary").innerText = summarizeTrend(temps, city);
+
+  } catch (err) {
+    document.getElementById("trendSummary").innerText = "❌ Error: " + err.message;
+  }
+}
+
+function showTrendChart(labels, temps) {
+  new Chart(document.getElementById("trendChart"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Forecast Temperature Trend (°C)",
+        data: temps,
+        borderColor: "blue",
+        backgroundColor: "lightblue",
+        fill: false
+      }]
+    }
+  });
+}
+
+function summarizeTrend(temps, city) {
+  const avg = temps.reduce((a,b)=>a+b,0)/temps.length;
+  const trend = temps[temps.length-1] > temps[0] ? "increasing 📈" : "decreasing 📉";
+  return `🌡️ Forecast trend for ${city}: Average ${avg.toFixed(1)}°C, trend is ${trend}.`;
+}
+</script>
+
+
+</body>
+</html>

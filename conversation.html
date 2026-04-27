@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conversational Weather with Auto Location</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+    }
+    /* Fade-in animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Bounce animation for card */
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-15px); }
+    60% { transform: translateY(-7px); }
+  }
+
+  .animated-result {
+    animation: fadeIn 0.8s ease forwards;
+  }
+
+  .card:hover {
+    animation: bounce 1s;
+  }
+
+  .btn:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+  }
+    .vh-100 {
+      height: 100vh;
+    }
+    .card {
+      background-color: rgba(255,255,255,0.9);
+      border-radius: 10px;
+    }
+    .carousel-item img {
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+      filter: brightness(0.7);
+    }
+  </style>
+  </style>
+</head>
+<body>
+
+ <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index1.html">☀️ SkySense</a>
+
+    <!-- Toggler for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible links -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index1.html">🌤️ Weather</a></li>
+        <li class="nav-item"><a class="nav-link" href="ClimateTrend.html">📈 Climate Trend</a></li>
+        <li class="nav-item"><a class="nav-link" href="activity.html">🏃 Best Activity Time</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Left Half: Conversational Weather -->
+    <div class="col-md-6 d-flex align-items-center justify-content-center vh-100">
+      <div class="card p-4 shadow-lg w-75">
+        <h2 class="text-center text-info">🗣️ Conversational Weather</h2>
+       
+          <button class="btn btn-success w-100 mb-4" onclick="getWeatherByLocation()">📍 Auto Location Weather</button>
+        
+        <input type="text" id="queryInput" class="form-control mb-3" 
+               placeholder="Ask about the weather (e.g., Will it rain before I get home?)">
+        <button class="btn btn-primary w-100 mb-2" onclick="conversationalWeather()">Ask</button>
+       
+        <div id="convResult" class="mt-3 text-center"></div>
+        <div class="d-flex gap-2">
+      
+      <button class="btn btn-success flex-fill" onclick="startVoiceInput()">🎤 Speak</button>
+    </div>
+    <div id="convResult" class="mt-3 text-center"></div>
+      </div>
+    </div>
+
+     <!-- Right Half: Slideshow -->
+    <div class="col-md-6 p-0">
+      <div id="weatherCarousel" class="carousel slide vh-100" data-bs-ride="carousel" data-bs-interval="4000">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img src="https://picsum.photos/id/1018/1200/800" alt="Kerala Monsoon Sunset">
+          </div>
+          <div class="carousel-item">
+            <img src="https://picsum.photos/id/1015/1200/800" alt="Monsoon Clouds">
+          </div>
+          <div class="carousel-item">
+            <img src="https://picsum.photos/id/1016/1200/800" alt="Palm Trees Kerala">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Sample forecast context for conversational Q&A
+// const forecastContext = `
+// Rain is expected at 6 PM in Thiruvananthapuram.
+// Tomorrow will be sunny with temperatures around 32°C,
+// making it a good day for outdoor activities like going to the beach.
+// `;
+
+// function conversationalWeather() {
+//   const queryInput = document.getElementById("queryInput");
+//   const query = queryInput.value.trim();
+//   let answer = "";
+
+//   if (query.toLowerCase().includes("rain")) {
+//     answer = "🌧️ Yes, rain is expected around 6 PM.";
+//   } else if (query.toLowerCase().includes("beach")) {
+//     answer = "🏖️ Yes, tomorrow looks good for a beach trip.";
+//   } else {
+//     answer = "🤔 I couldn’t find a clear answer in the forecast.";
+//   }
+
+//   const resultDiv = document.getElementById("convResult");
+//   resultDiv.innerText = answer;
+//   resultDiv.classList.remove("animated-result"); // reset
+//   void resultDiv.offsetWidth; // trigger reflow
+//   resultDiv.classList.add("animated-result"); // apply animation
+// }
+
+// Auto Location Weather Fetch
+function getWeatherByLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const apiKey = "41229cf61edd8e1021251c339a96e62c"; // Replace with your OpenWeatherMap API key
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById("convResult").innerText =
+              `📍 Location: ${data.name}\n🌡️ Temp: ${data.main.temp}°C\n☁️ Condition: ${data.weather[0].description}`;
+          })
+          .catch(error => {
+            document.getElementById("convResult").innerText = "⚠️ Error fetching weather.";
+          });
+      },
+      (error) => {
+        document.getElementById("convResult").innerText = "⚠️ Location access denied.";
+      }
+    );
+  } else {
+    document.getElementById("convResult").innerText = "❌ Geolocation not supported.";
+  }
+}
+       // 🎤 Voice Input using Web Speech API
+const forecastContext = `
+Rain is expected at 6 PM in Thiruvananthapuram.
+Tomorrow will be sunny with temperatures around 32°C,
+making it a good day for outdoor activities.
+`;
+
+function conversationalWeather() {
+  const query = document.getElementById("queryInput").value.trim().toLowerCase();
+  let answer = "";
+
+  if (query.includes("rain")) {
+    answer = forecastContext.toLowerCase().includes("rain")
+      ? "🌧️ Yes, rain is expected around 6 PM."
+      : "☀️ No rain is mentioned in the forecast.";
+  } else if (query.includes("sunny") || query.includes("beach")) {
+    answer = forecastContext.toLowerCase().includes("sunny")
+      ? "☀️ Yes, tomorrow looks sunny and good for outdoor plans."
+      : "⚠️ Weather may not be suitable for outdoor plans.";
+  } else if (query.includes("temperature") || query.includes("hot")) {
+    answer = "🌡️ The forecast says around 32°C tomorrow.";
+  } else {
+    answer = "🤔 I couldn’t find a clear answer in the forecast.";
+  }
+
+  document.getElementById("convResult").innerText = answer;
+  document.getElementById("queryInput").value = "";
+}
+
+// 🎤 Voice Input using Web Speech API
+function startVoiceInput() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("❌ Voice input not supported in this browser.");
+    return;
+  }
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-IN"; // English (India)
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById("queryInput").value = transcript;
+    conversationalWeather(); // auto run after voice input
+  };
+
+  recognition.onerror = (event) => {
+    document.getElementById("convResult").innerText = "⚠️ Voice input error: " + event.error;
+  };
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html>
